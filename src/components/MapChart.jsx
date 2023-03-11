@@ -1,6 +1,9 @@
-import React from "react";
-import { geoCentroid } from "d3-geo";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  ZoomableGroup,
+} from "react-simple-maps";
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
@@ -22,28 +25,40 @@ const MapChart = ({ guessedStates, guessState }) => {
 
   return (
     <ComposableMap projection="geoAlbersUsa">
-      <Geographies geography={geoUrl}>
-        {({ geographies }) => (
-          <>
-            {geographies.map((geo) => {
+      <ZoomableGroup translateExtent={[
+        [0, 0],
+        [800, 600]
+      ]}>
+        <Geographies geography={geoUrl}>
+          {({ geographies }) =>
+            geographies.map((geo) => {
               return (
                 <Geography
                   key={geo.rsmKey}
                   stroke="#FFF"
                   geography={geo}
                   fill={getFillColor(geo.properties.name)}
+                  className={getStateIndex(geo.properties.name) !== -1 ? 'piece' : ''}
                   style={{
+                    default: {
+                      outline: 'none'
+                    },
                     hover: {
-                      fill: getStateIndex(geo.properties.name) === -1 && "#555",
-                    }
+                      fill: getStateIndex(geo.properties.name) === -1 && "#AAA",
+                      outline: 'none',
+                      cursor: 'pointer'
+                    },
+                    pressed: {
+                      outline: "none",
+                    },
                   }}
                   onClick={() => guessState(geo.properties.name)}
                 />
               );
-            })}
-          </>
-        )}
-      </Geographies>
+            })
+          }
+        </Geographies>
+      </ZoomableGroup>
     </ComposableMap>
   );
 };
