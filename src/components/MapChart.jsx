@@ -38,6 +38,7 @@ const MapChart = ({ guessedStates, guessState }) => {
                   stroke="#FFF"
                   geography={geo}
                   fill={getFillColor(geo.properties.name)}
+                  className={getStateIndex(geo.properties.name) !== -1 ? 'piece' : ''}
                   style={{
                     default: {
                       outline: 'none'

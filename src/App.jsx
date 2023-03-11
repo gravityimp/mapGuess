@@ -105,9 +105,9 @@ export default function App() {
           </button>
         </form>
         <div className={`settings ${!active && "settings--hidden"}`}>
-          <h1>hello</h1>
-          <button className="button" onClick={deactivate}>
-            Give Up
+          <h1>USA: States</h1>
+          <button className="button button--giveup" onClick={deactivate}>
+            Back
           </button>
         </div>
       </div>

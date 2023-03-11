@@ -13,7 +13,7 @@ export default forwardRef(function Guess(props, ref) {
   const [guessedStates, setGuessedStates] = useState([]);
   const [currentState, setCurrentState] = useState(getRandomState(leftStates));
   const [tries, setTries] = useState(0);
-  const [timer, setTimer] = useState({ time: '00:00:00', completed: false });
+  const [timer, setTimer] = useState({ time: "00:00:00", completed: false });
   const [timerRef, setTimerRef] = useState(null);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -39,11 +39,11 @@ export default forwardRef(function Guess(props, ref) {
   }
 
   function guessState(state) {
-    const speech = new window.SpeechSynthesisUtterance(state);
-    speech.lang = "en";
+    // const speech = new window.SpeechSynthesisUtterance(state);
+    // speech.lang = "en";
 
-    const synth = window.speechSynthesis;
-    synth.speak(speech);
+    // const synth = window.speechSynthesis;
+    // synth.speak(speech);
 
     if (guessedStates.filter((e) => e.name === state).length > 0) return;
     if (currentState !== state) {
@@ -71,6 +71,14 @@ export default forwardRef(function Guess(props, ref) {
     clearInterval(timerRef);
     setTimer({ ...timer, completed: true });
     openResultModal();
+
+    const results = JSON.parse(localStorage.getItem("results")) || [];
+    results.push({
+      time: timer,
+      correct: `${getCorrectGuesses()}/${guessedStates.length}`,
+      date: new Date(),
+    });
+    localStorage.setItem("results", JSON.stringify(results));
   }
 
   function openResultModal() {
@@ -93,16 +101,21 @@ export default forwardRef(function Guess(props, ref) {
     <div className="container" ref={ref}>
       <div className="guess">
         <h2>{timer.time}</h2>
-        <h2>State: {currentState}</h2>
+        {currentState ? (
+          <h2 className="h--stateGuess">{currentState}</h2>
+        ) : (
+          <h2 className="h--completed">Good Job!</h2>
+        )}
+
         <h2>{getPercentage()}%</h2>
       </div>
-      <div style={{ width: "60%", height: "50%" }}>
+      <div className="map">
         <MapChart guessedStates={guessedStates} guessState={guessState} />
         {modalOpen ? (
           <Modal header="Results" close={closeResultModal}>
             <h4>Good Job!</h4>
             <p>Your time: {timer.time}</p>
-            <p>Percentage: {getPercentage()}</p>
+            <p>Percentage: {getPercentage()}%</p>
             <p>
               Correct guesses: {getCorrectGuesses()}/{guessedStates.length}
             </p>
