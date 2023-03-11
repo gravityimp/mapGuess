@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "start": "serve -s build",
     "build": "vite build",
     "preview": "vite preview",
-    "heroku-postbuild": "npm run build"
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "react": "^18.2.0",
