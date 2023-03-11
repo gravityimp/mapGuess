@@ -1,47 +1,121 @@
-import { useState } from "react";
-import MapChart from "./components/MapChart";
+import { useRef, useState } from "react";
+import Header from "./components/Header";
+import Guess from "./Guess";
+import ButtonBlock from "./components/UI/ButtonBlock";
+import ButtonGroup from "./components/UI/ButtonGroup";
+import "./styles.css";
 
-import states from "./data/states.json";
+import settings from "./data/settings.json";
 
 export default function App() {
-  const [leftStates, setLeftStates] = useState(states);
-  const [guessedStates, setGuessedStates] = useState([]);
-  const [currentState, setCurrentState] = useState(getRandomState(leftStates));
-  const [tries, setTries] = useState(0);
+  const [mode, setMode] = useState("Pin");
+  const [difficulty, setDifficulty] = useState("Easy");
+  const [active, setActive] = useState(false);
 
-  function getRandomState(newStates) {
-    if(newStates.length === 0) return null;
-    return newStates[Math.floor(Math.random() * newStates.length)];
+  const guessRef = useRef(null);
+
+  function activate() {
+    setActive(true);
+    setTimeout(() => {
+      if (guessRef.current) {
+        guessRef.current.scrollIntoView({ behavior: "smooth" });
+      }
+    }, 1);
   }
 
-  function getPercentage() {
-    let points = guessedStates.length;
-    if (points === 0) return 0;
-    guessedStates.forEach((state) => {
-      points -= state.tries === 0 ? 0 : 1 / (state.tries + 1);
-    });
-    const result = (100 * points) / guessedStates.length;
-    return Math.round(result * 100) / 100;
-  }
-
-  function guessState(state) {
-    if (guessedStates.filter((e) => e.name === state).length > 0) return;
-    if (currentState !== state) {
-      setTries(tries + 1);
-      return;
-    }
-    setGuessedStates([...guessedStates, { name: state, tries: tries }]);
-    setLeftStates([...leftStates.filter(s => s !== state)]);
-    setCurrentState(getRandomState(leftStates.filter(s => s !== state)));
-    setTries(prev => 0);
+  function deactivate() {
+    setActive(false);
   }
 
   return (
-    <div style={{ width: "70%", height: "70%" }}>
-      <h2>State: {currentState}</h2>
-      <h2>Tries: {tries}</h2>
-      <h2>Percentage: {getPercentage()}%</h2>
-      <MapChart guessedStates={guessedStates} guessState={guessState} />
-    </div>
+    <>
+      <Header />
+      <div className="container">
+        <form
+          className={`form__settings ${active && "form__settings--hidden"}`}
+        >
+          <h2 className="form__header">Settings</h2>
+          <fieldset className="field field__mode">
+            <legend className="field__legened" align="center">
+              Mode
+            </legend>
+            <ButtonBlock>
+              <button
+                type="button"
+                className={`button button-block__item--1 ${
+                  mode === "Pin" && "button--active"
+                }`}
+                onClick={() => {
+                  setMode("Pin");
+                  setDifficulty("Easy");
+                }}
+              >
+                Pin
+              </button>
+              <button
+                type="button"
+                className={`button button-block__item--2 ${
+                  mode === "Type" && "button--active"
+                }`}
+                onClick={() => {
+                  setMode("Type");
+                  setDifficulty("Easy");
+                }}
+              >
+                Type
+              </button>
+              <button
+                type="button"
+                className={`button button-block__item--3 ${
+                  mode === "Abbreviation" && "button--active"
+                }`}
+                onClick={() => {
+                  setMode("Abbreviation");
+                  setDifficulty("Normal");
+                }}
+              >
+                Abbreviation
+              </button>
+            </ButtonBlock>
+          </fieldset>
+          <fieldset className="field field__difficulty">
+            <legend className="field__legened" align="center">
+              Difficulty
+            </legend>
+            <ButtonGroup active={difficulty}>
+              {settings[`mode${mode}`].difficulties.map((diff, index) => {
+                return (
+                  <button
+                    type="button"
+                    key={diff}
+                    onClick={() => setDifficulty(diff)}
+                  >
+                    {diff}
+                  </button>
+                );
+              })}
+            </ButtonGroup>
+          </fieldset>
+          <button
+            type="button"
+            className="button button__play"
+            onClick={activate}
+          >
+            Play
+          </button>
+        </form>
+        <div className={`settings ${!active && "settings--hidden"}`}>
+          <h1>hello</h1>
+          <button className="button" onClick={deactivate}>
+            Give Up
+          </button>
+        </div>
+      </div>
+      {active ? (
+        <div className="container game">
+          <Guess ref={guessRef} />
+        </div>
+      ) : null}
+    </>
   );
 }
