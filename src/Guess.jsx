@@ -50,7 +50,7 @@ export default forwardRef(function Guess({ settings }, ref) {
 
       return;
     }
-    if(settings.mode === "Abbreviation") {
+    if (settings.mode === "Abbreviation") {
       state = states.filter((s) => s.name === state)[0].abbr;
     }
 
@@ -90,16 +90,16 @@ export default forwardRef(function Guess({ settings }, ref) {
     setTimer({ ...timer, completed: true });
     openResultModal();
 
-    setTimeout(() => {
-      const results = JSON.parse(localStorage.getItem("results")) || [];
-      results.push({
-        time: timer,
-        correct: `${getCorrectGuesses()}/${guessedStates.length}`,
-        date: new Date(),
-        settings: settings,
-      });
-      localStorage.setItem("results", JSON.stringify(results));
-    }, 1000);
+    const results = JSON.parse(localStorage.getItem("results")) || [];
+    const correct = tries === 0 ? 1 : 0;
+    results.push({
+      time: timer,
+      correct: `${getCorrectGuesses() + correct}/${guessedStates.length + 1}`,
+      percentage: getPercentage(),
+      date: new Date(),
+      settings: settings,
+    });
+    localStorage.setItem("results", JSON.stringify(results));
   }
 
   function openResultModal() {
@@ -147,8 +147,7 @@ export default forwardRef(function Guess({ settings }, ref) {
     if (settings.mode === "Abbreviation") {
       setLeftStates(states.map((s) => s.abbr));
       setCurrentState(getRandomState(states.map((s) => s.abbr)));
-    }
-    else if (settings.mode !== "Type" && settings.difficulty !== "Practice") {
+    } else if (settings.mode !== "Type" && settings.difficulty !== "Practice") {
       setCurrentState(getRandomState(leftStates));
     }
 
