@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Header from "./components/Header";
 import Guess from "./Guess";
 import ButtonBlock from "./components/UI/ButtonBlock";
@@ -11,6 +11,7 @@ export default function App() {
   const [mode, setMode] = useState("Pin");
   const [difficulty, setDifficulty] = useState("Easy");
   const [active, setActive] = useState(false);
+  const [results, setResults] = useState([]);
 
   const guessRef = useRef(null);
 
@@ -26,6 +27,10 @@ export default function App() {
   function deactivate() {
     setActive(false);
   }
+
+  useEffect(() => {
+    setResults(JSON.parse(localStorage.getItem('results')) || []);
+  }, [active]);
 
   return (
     <>
@@ -118,7 +123,25 @@ export default function App() {
             settings={{ mode: mode, difficulty: difficulty }}
           />
         </div>
-      ) : null}
+      ) : results.length > 0 ? (
+        <div className="container--result">
+          {
+            results.map((res) => {
+              return (
+                <div key={res.date} className="result">
+                  <h2>{new Date(res.date).toLocaleDateString()}</h2>
+                  <p>Time: {res.time.time}</p>
+                  <p>Guessed: {res.correct} ({res.percentage || 100}%)</p>
+                  <h3>Settings</h3>
+                  <p>Mode: {res.settings.mode}</p>
+                  <p>Difficulty: {res.settings.difficulty}</p>
+                </div>
+              )
+            })
+          }
+        </div>
+      ) : null
+      }
     </>
   );
 }
