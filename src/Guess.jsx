@@ -45,7 +45,7 @@ export default forwardRef(function Guess({ settings }, ref) {
       const synth = window.speechSynthesis;
       synth.speak(speech);
 
-      setCurrentState(state);
+      setCurrentState(`${state} (${states.filter((s) => s.name === state)[0].abbr})`);
       setGuessedStates([{ name: state, tries: 0 }]);
 
       return;
