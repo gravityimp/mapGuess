@@ -113,7 +113,10 @@ export default function App() {
       </div>
       {active ? (
         <div className="container game">
-          <Guess ref={guessRef} />
+          <Guess
+            ref={guessRef}
+            settings={{ mode: mode, difficulty: difficulty }}
+          />
         </div>
       ) : null}
     </>

@@ -7,7 +7,7 @@ import {
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
-const MapChart = ({ guessedStates, guessState }) => {
+const MapChart = ({ guessedStates, guessState, settings }) => {
   function getStateIndex(state) {
     const idx = guessedStates.findIndex(
       (e) => e.name.toLocaleLowerCase() === state.toLocaleLowerCase()
@@ -25,10 +25,12 @@ const MapChart = ({ guessedStates, guessState }) => {
 
   return (
     <ComposableMap projection="geoAlbersUsa">
-      <ZoomableGroup translateExtent={[
-        [0, 0],
-        [800, 600]
-      ]}>
+      <ZoomableGroup
+        translateExtent={[
+          [0, 0],
+          [800, 600],
+        ]}
+      >
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => {
@@ -37,22 +39,32 @@ const MapChart = ({ guessedStates, guessState }) => {
                   key={geo.rsmKey}
                   stroke="#FFF"
                   geography={geo}
-                  fill={getFillColor(geo.properties.name)}
-                  className={getStateIndex(geo.properties.name) !== -1 ? 'piece' : ''}
+                  fill={settings.difficulty !== "Hard" ? getFillColor(geo.properties.name) : '#DDD'}
+                  className={
+                    getStateIndex(geo.properties.name) !== -1 &&
+                    settings.difficulty === "Hard"
+                      ? "piece"
+                      : ""
+                  }
                   style={{
                     default: {
-                      outline: 'none'
+                      outline: "none",
+                      border:
+                        getStateIndex(geo.properties.name) !== -1 &&
+                        settings.difficulty === "Practice"
+                          ? "#F11"
+                          : "none",
                     },
                     hover: {
                       fill: getStateIndex(geo.properties.name) === -1 && "#AAA",
-                      outline: 'none',
-                      cursor: 'pointer'
+                      outline: "none",
+                      cursor: "pointer",
                     },
                     pressed: {
                       outline: "none",
                     },
                   }}
-                  onClick={() => guessState(geo.properties.name)}
+                  onClick={settings.mode !== "Type" ? () => guessState(geo.properties.name) : null}
                 />
               );
             })

@@ -1,17 +1,16 @@
 import { useEffect, useState, forwardRef } from "react";
 import Modal from "./components/UI/Modal";
 import MapChart from "./components/MapChart";
-import ButtonGroup from "./components/UI/ButtonGroup";
-import RadioButton from "./components/UI/RadioButton";
 
 import states from "./data/states.json";
+const stateNames = states.map((state) => state.name);
 
-export default forwardRef(function Guess(props, ref) {
+export default forwardRef(function Guess({ settings }, ref) {
   const timerStart = Date.now();
 
-  const [leftStates, setLeftStates] = useState(states);
+  const [leftStates, setLeftStates] = useState(stateNames);
   const [guessedStates, setGuessedStates] = useState([]);
-  const [currentState, setCurrentState] = useState(getRandomState(leftStates));
+  const [currentState, setCurrentState] = useState("");
   const [tries, setTries] = useState(0);
   const [timer, setTimer] = useState({ time: "00:00:00", completed: false });
   const [timerRef, setTimerRef] = useState(null);
@@ -39,20 +38,39 @@ export default forwardRef(function Guess(props, ref) {
   }
 
   function guessState(state) {
-    // const speech = new window.SpeechSynthesisUtterance(state);
-    // speech.lang = "en";
+    const cState = state;
+    if (settings.difficulty === "Practice") {
+      const speech = new window.SpeechSynthesisUtterance(state);
+      speech.lang = "en";
+      const synth = window.speechSynthesis;
+      synth.speak(speech);
 
-    // const synth = window.speechSynthesis;
-    // synth.speak(speech);
+      setCurrentState(state);
+      setGuessedStates([{ name: state, tries: 0 }]);
+
+      return;
+    }
+    if(settings.mode === "Abbreviation") {
+      state = states.filter((s) => s.name === state)[0].abbr;
+    }
 
     if (guessedStates.filter((e) => e.name === state).length > 0) return;
-    if (currentState !== state) {
+    if (!leftStates.includes(state)) return;
+    if (currentState !== state && settings.mode !== "Type") {
       setTries(tries + 1);
       return;
     }
-    setGuessedStates([...guessedStates, { name: state, tries: tries }]);
-    setLeftStates([...leftStates.filter((s) => s !== state)]);
-    setCurrentState(getRandomState(leftStates.filter((s) => s !== state)));
+
+    setGuessedStates((prev) => [
+      ...guessedStates,
+      { name: cState, tries: tries },
+    ]);
+    setLeftStates((prev) => [...leftStates.filter((s) => s !== state)]);
+    if (settings.mode !== "Type") {
+      setCurrentState(getRandomState(leftStates.filter((s) => s !== state)));
+    } else {
+      setCurrentState("");
+    }
     setTries((prev) => 0);
 
     checkWin();
@@ -72,13 +90,16 @@ export default forwardRef(function Guess(props, ref) {
     setTimer({ ...timer, completed: true });
     openResultModal();
 
-    const results = JSON.parse(localStorage.getItem("results")) || [];
-    results.push({
-      time: timer,
-      correct: `${getCorrectGuesses()}/${guessedStates.length}`,
-      date: new Date(),
-    });
-    localStorage.setItem("results", JSON.stringify(results));
+    setTimeout(() => {
+      const results = JSON.parse(localStorage.getItem("results")) || [];
+      results.push({
+        time: timer,
+        correct: `${getCorrectGuesses()}/${guessedStates.length}`,
+        date: new Date(),
+        settings: settings,
+      });
+      localStorage.setItem("results", JSON.stringify(results));
+    }, 1000);
   }
 
   function openResultModal() {
@@ -89,7 +110,48 @@ export default forwardRef(function Guess(props, ref) {
     setModalOpen(false);
   }
 
+  function handleInputChange(e) {
+    setCurrentState(e.target.value);
+    guessState(e.target.value);
+  }
+
+  function getMiddleAnchor() {
+    if (settings.mode === "Type") {
+      return (
+        <input
+          value={currentState}
+          onChange={handleInputChange}
+          className="input--type"
+        />
+      );
+    }
+    if (currentState) {
+      return <h2 className="h--stateGuess">{currentState}</h2>;
+    }
+    return <h2 className="h--completed">Good Job!</h2>;
+  }
+
+  function getRightAnchor() {
+    if (settings.mode === "Type") {
+      return `${getCorrectGuesses()}/${
+        guessedStates.length + leftStates.length
+      }`;
+    }
+    if (settings.difficulty === "Practice") {
+      return "Practice";
+    }
+    return `${getPercentage()}%`;
+  }
+
   useEffect(() => {
+    if (settings.mode === "Abbreviation") {
+      setLeftStates(states.map((s) => s.abbr));
+      setCurrentState(getRandomState(states.map((s) => s.abbr)));
+    }
+    else if (settings.mode !== "Type" && settings.difficulty !== "Practice") {
+      setCurrentState(getRandomState(leftStates));
+    }
+
     const _timer = setInterval(updateTimer, 1000);
     setTimerRef(_timer);
     return () => {
@@ -101,19 +163,22 @@ export default forwardRef(function Guess(props, ref) {
     <div className="container" ref={ref}>
       <div className="guess">
         <h2>{timer.time}</h2>
-        {currentState ? (
-          <h2 className="h--stateGuess">{currentState}</h2>
-        ) : (
-          <h2 className="h--completed">Good Job!</h2>
-        )}
-
-        <h2>{getPercentage()}%</h2>
+        {getMiddleAnchor()}
+        <h2>{getRightAnchor()}</h2>
       </div>
       <div className="map">
-        <MapChart guessedStates={guessedStates} guessState={guessState} />
+        <MapChart
+          guessedStates={guessedStates}
+          guessState={guessState}
+          settings={settings}
+        />
         {modalOpen ? (
           <Modal header="Results" close={closeResultModal}>
             <h4>Good Job!</h4>
+
+            <p>Mode: {settings.mode}</p>
+            <p>Difficulty: {settings.difficulty}</p>
+
             <p>Your time: {timer.time}</p>
             <p>Percentage: {getPercentage()}%</p>
             <p>
