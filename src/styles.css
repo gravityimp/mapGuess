@@ -278,7 +278,7 @@
 .container--result {
   display: flex;
   flex-direction: row;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
 
@@ -293,6 +293,7 @@
 
   min-width: 220px;
   padding: 16px;
+  margin: 8px 16px;
   
   border-radius: 8px;
   background-color: #7e22ce;
@@ -300,6 +301,9 @@
 
 @keyframes piece-blink {
   0% {
+    fill: #5A5;
+  }
+  25% {
     fill: #5A5;
   }
   100% {

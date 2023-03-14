@@ -29,7 +29,7 @@ export default function App() {
   }
 
   useEffect(() => {
-    setResults(JSON.parse(localStorage.getItem('results')) || []);
+    setResults(JSON.parse(localStorage.getItem("results")) || []);
   }, [active]);
 
   return (
@@ -120,28 +120,31 @@ export default function App() {
         <div className="container game">
           <Guess
             ref={guessRef}
-            settings={{ mode: mode, difficulty: difficulty }}
+            settings={{
+              mode: mode,
+              difficulty: difficulty,
+              field: settings[`mode${mode}`].field,
+            }}
           />
         </div>
       ) : results.length > 0 ? (
         <div className="container--result">
-          {
-            results.map((res) => {
-              return (
-                <div key={res.date} className="result">
-                  <h2>{new Date(res.date).toLocaleDateString()}</h2>
-                  <p>Time: {res.time}</p>
-                  <p>Guessed: {res.correct} ({res.percentage || 100}%)</p>
-                  <h3>Settings</h3>
-                  <p>Mode: {res.settings.mode}</p>
-                  <p>Difficulty: {res.settings.difficulty}</p>
-                </div>
-              )
-            })
-          }
+          {results.map((res) => {
+            return (
+              <div key={res.date} className="result">
+                <h2>{new Date(res.date).toLocaleDateString()}</h2>
+                <p>Time: {res.time}</p>
+                <p>
+                  Guessed: {res.correct} ({res.percentage || 100}%)
+                </p>
+                <h3>Settings</h3>
+                <p>Mode: {res.settings.mode}</p>
+                <p>Difficulty: {res.settings.difficulty}</p>
+              </div>
+            );
+          })}
         </div>
-      ) : null
-      }
+      ) : null}
     </>
   );
 }

@@ -10,7 +10,7 @@ const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 const MapChart = ({ guessedRegions, makeGuess, settings }) => {
   function getGuessIndex(region) {
     const idx = guessedRegions.findIndex(
-      (e) => e.name.toLocaleLowerCase() === region.toLocaleLowerCase()
+      (reg) => reg.name.toLocaleLowerCase() === region.toLocaleLowerCase()
     );
     return idx;
   }
