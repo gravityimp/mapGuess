@@ -8,68 +8,75 @@ const stateNames = states.map((state) => state.name);
 export default forwardRef(function Guess({ settings }, ref) {
   const timerStart = Date.now();
 
-  const [leftStates, setLeftStates] = useState(stateNames);
-  const [guessedStates, setGuessedStates] = useState([]);
-  const [currentState, setCurrentState] = useState("");
+  const [leftRegions, setLeftRegions] = useState(stateNames);
+  const [guessedRegions, setGuessedRegions] = useState([]);
+  const [currentRegion, setCurrentRegion] = useState("");
   const [tries, setTries] = useState(0);
-  const [timer, setTimer] = useState({ time: "00:00:00", completed: false });
-  const [timerRef, setTimerRef] = useState(null);
+  const [timer, setTimer] = useState({
+    time: "00:00:00",
+    completed: false,
+    ref: null,
+  });
 
   const [modalOpen, setModalOpen] = useState(false);
 
-  function getRandomState(newStates) {
-    if (newStates.length === 0) return null;
-    return newStates[Math.floor(Math.random() * newStates.length)];
+  function getRandomRegion(newRegions) {
+    if (newRegions.length === 0) return null;
+    return newRegions[Math.floor(Math.random() * newRegions.length)];
   }
 
   function getPercentage() {
-    let points = guessedStates.length;
+    let points = guessedRegions.length;
     if (points === 0) return 0;
-    guessedStates.forEach((state) => {
-      points -= state.tries === 0 ? 0 : 1 - 1 / (state.tries + 1);
+
+    guessedRegions.forEach((region) => {
+      points -= region.tries === 0 ? 0 : 1 - 1 / (region.tries + 1);
     });
-    const result = (100 * points) / guessedStates.length;
+    const result = (100 * points) / guessedRegions.length;
+
     return Math.round(result * 100) / 100;
   }
 
   function getCorrectGuesses() {
-    const correct = guessedStates.filter((state) => state.tries === 0);
+    const correct = guessedRegions.filter((reg) => reg.tries === 0);
     return correct.length;
   }
 
-  function guessState(state) {
-    const cState = state;
+  function guessState(region) {
+    const cRegion = region;
     if (settings.difficulty === "Practice") {
-      const speech = new window.SpeechSynthesisUtterance(state);
+      const speech = new window.SpeechSynthesisUtterance(region);
       speech.lang = "en";
       const synth = window.speechSynthesis;
       synth.speak(speech);
 
-      setCurrentState(`${state} (${states.filter((s) => s.name === state)[0].abbr})`);
-      setGuessedStates([{ name: state, tries: 0 }]);
+      setCurrentRegion(
+        `${region} (${states.filter((reg) => reg.name === region)[0].abbr})`
+      );
+      setGuessedRegions([{ name: region, tries: 0 }]);
 
       return;
     }
     if (settings.mode === "Abbreviation") {
-      state = states.filter((s) => s.name === state)[0].abbr;
+      region = states.filter((reg) => reg.name === region)[0].abbr;
     }
 
-    if (guessedStates.filter((e) => e.name === state).length > 0) return;
-    if (!leftStates.includes(state)) return;
-    if (currentState !== state && settings.mode !== "Type") {
+    if (guessedRegions.filter((reg) => reg.name === region).length > 0) return;
+    if (!leftRegions.includes(region)) return;
+    if (currentRegion !== region && settings.mode !== "Type") {
       setTries(tries + 1);
       return;
     }
 
-    setGuessedStates((prev) => [
-      ...guessedStates,
-      { name: cState, tries: tries },
+    setGuessedRegions((prev) => [
+      ...guessedRegions,
+      { name: cRegion, tries: tries },
     ]);
-    setLeftStates((prev) => [...leftStates.filter((s) => s !== state)]);
+    setLeftRegions((prev) => [...leftRegions.filter((reg) => reg !== region)]);
     if (settings.mode !== "Type") {
-      setCurrentState(getRandomState(leftStates.filter((s) => s !== state)));
+      setCurrentRegion(getRandomRegion(leftRegions.filter((reg) => reg !== region)));
     } else {
-      setCurrentState("");
+      setCurrentRegion("");
     }
     setTries((prev) => 0);
 
@@ -81,20 +88,21 @@ export default forwardRef(function Guess({ settings }, ref) {
     const date = new Date(null);
     date.setSeconds(Math.floor((now - timerStart) / 1000));
     date.setHours(0);
-    setTimer({ time: date.toLocaleTimeString(), completed: false });
+    setTimer({ ...timer, time: date.toLocaleTimeString() });
   }
 
   function checkWin() {
-    if (leftStates.length !== 1) return;
-    clearInterval(timerRef);
+    if (leftRegions.length !== 1) return;
+    
+    clearInterval(timer.ref);
     setTimer({ ...timer, completed: true });
     openResultModal();
 
     const results = JSON.parse(localStorage.getItem("results")) || [];
     const correct = tries === 0 ? 1 : 0;
     results.push({
-      time: timer,
-      correct: `${getCorrectGuesses() + correct}/${guessedStates.length + 1}`,
+      time: timer.time,
+      correct: `${getCorrectGuesses() + correct}/${guessedRegions.length + 1}`,
       percentage: getPercentage(),
       date: new Date(),
       settings: settings,
@@ -111,7 +119,7 @@ export default forwardRef(function Guess({ settings }, ref) {
   }
 
   function handleInputChange(e) {
-    setCurrentState(e.target.value);
+    setCurrentRegion(e.target.value);
     guessState(e.target.value);
   }
 
@@ -119,14 +127,14 @@ export default forwardRef(function Guess({ settings }, ref) {
     if (settings.mode === "Type") {
       return (
         <input
-          value={currentState}
+          value={currentRegion}
           onChange={handleInputChange}
           className="input--type"
         />
       );
     }
-    if (currentState) {
-      return <h2 className="h--stateGuess">{currentState}</h2>;
+    if (currentRegion) {
+      return <h2 className="h--stateGuess">{currentRegion}</h2>;
     }
     return <h2 className="h--completed">Good Job!</h2>;
   }
@@ -134,7 +142,7 @@ export default forwardRef(function Guess({ settings }, ref) {
   function getRightAnchor() {
     if (settings.mode === "Type") {
       return `${getCorrectGuesses()}/${
-        guessedStates.length + leftStates.length
+        guessedRegions.length + leftRegions.length
       }`;
     }
     if (settings.difficulty === "Practice") {
@@ -145,14 +153,14 @@ export default forwardRef(function Guess({ settings }, ref) {
 
   useEffect(() => {
     if (settings.mode === "Abbreviation") {
-      setLeftStates(states.map((s) => s.abbr));
-      setCurrentState(getRandomState(states.map((s) => s.abbr)));
+      setLeftRegions(states.map((s) => s.abbr));
+      setCurrentRegion(getRandomRegion(states.map((s) => s.abbr)));
     } else if (settings.mode !== "Type" && settings.difficulty !== "Practice") {
-      setCurrentState(getRandomState(leftStates));
+      setCurrentRegion(getRandomRegion(leftRegions));
     }
 
     const _timer = setInterval(updateTimer, 1000);
-    setTimerRef(_timer);
+    setTimer({ ...timer, ref: _timer });
     return () => {
       clearInterval(_timer);
     };
@@ -167,8 +175,8 @@ export default forwardRef(function Guess({ settings }, ref) {
       </div>
       <div className="map">
         <MapChart
-          guessedStates={guessedStates}
-          guessState={guessState}
+          guessedRegions={guessedRegions}
+          makeGuess={guessState}
           settings={settings}
         />
         {modalOpen ? (
@@ -181,7 +189,7 @@ export default forwardRef(function Guess({ settings }, ref) {
             <p>Your time: {timer.time}</p>
             <p>Percentage: {getPercentage()}%</p>
             <p>
-              Correct guesses: {getCorrectGuesses()}/{guessedStates.length}
+              Correct guesses: {getCorrectGuesses()}/{guessedRegions.length}
             </p>
             <button className="button" onClick={closeResultModal}>
               Close
