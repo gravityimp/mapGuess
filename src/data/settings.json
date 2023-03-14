@@ -2,17 +2,20 @@
     "modes": ["Pin", "Type", "Abbreviation"],
     "modePin": {
         "difficulties": ["Practice", "Easy", "Hard"],
+        "field": "name",
         "practice": "Practice description",
         "easy": "Easy description",
         "hard": "Hard description"
     },
     "modeType": {
         "difficulties": ["Easy", "Hard"],
+        "field": "name",
         "easy": "Easy description",
         "hard": "Hard description"
     },
     "modeAbbreviation": {
         "difficulties": ["Normal"],
+        "field": "abbr",
         "normal": "Normal description"
     }
 }

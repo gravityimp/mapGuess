@@ -7,21 +7,27 @@ import {
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json";
 
-const MapChart = ({ guessedStates, guessState, settings }) => {
-  function getStateIndex(state) {
-    const idx = guessedStates.findIndex(
-      (e) => e.name.toLocaleLowerCase() === state.toLocaleLowerCase()
+const MapChart = ({ guessedRegions, makeGuess, settings }) => {
+  function getGuessIndex(region) {
+    const idx = guessedRegions.findIndex(
+      (reg) => reg.name.toLocaleLowerCase() === region.toLocaleLowerCase()
     );
     return idx;
   }
 
-  function getFillColor(state) {
-    const idx = getStateIndex(state);
+  function getFillColor(region) {
+    const idx = getGuessIndex(region);
     if (idx === -1) return "#DDD";
-    if (guessedStates[idx].tries === 0) return "#5A5";
-    else if (guessedStates[idx].tries > 2) return "#F32";
+    if (guessedRegions[idx].tries === 0) return "#5A5";
+    else if (guessedRegions[idx].tries > 2) return "#F32";
     else return "#FB0";
   }
+
+  /*
+    For map variety:
+    - Json map: { projection, geoUrl }
+    - App -> Guess -> MapChart
+  */
 
   return (
     <ComposableMap projection="geoAlbersUsa">
@@ -39,9 +45,13 @@ const MapChart = ({ guessedStates, guessState, settings }) => {
                   key={geo.rsmKey}
                   stroke="#FFF"
                   geography={geo}
-                  fill={settings.difficulty !== "Hard" ? getFillColor(geo.properties.name) : '#DDD'}
+                  fill={
+                    settings.difficulty !== "Hard"
+                      ? getFillColor(geo.properties.name)
+                      : "#DDD"
+                  }
                   className={
-                    getStateIndex(geo.properties.name) !== -1 &&
+                    getGuessIndex(geo.properties.name) !== -1 &&
                     settings.difficulty === "Hard"
                       ? "piece"
                       : ""
@@ -50,13 +60,13 @@ const MapChart = ({ guessedStates, guessState, settings }) => {
                     default: {
                       outline: "none",
                       border:
-                        getStateIndex(geo.properties.name) !== -1 &&
+                        getGuessIndex(geo.properties.name) !== -1 &&
                         settings.difficulty === "Practice"
                           ? "#F11"
                           : "none",
                     },
                     hover: {
-                      fill: getStateIndex(geo.properties.name) === -1 && "#AAA",
+                      fill: getGuessIndex(geo.properties.name) === -1 && "#AAA",
                       outline: "none",
                       cursor: "pointer",
                     },
@@ -64,7 +74,11 @@ const MapChart = ({ guessedStates, guessState, settings }) => {
                       outline: "none",
                     },
                   }}
-                  onClick={settings.mode !== "Type" ? () => guessState(geo.properties.name) : null}
+                  onClick={
+                    settings.mode !== "Type"
+                      ? () => makeGuess(geo.properties.name)
+                      : null
+                  }
                 />
               );
             })
