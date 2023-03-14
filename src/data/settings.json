@@ -1,8 +1,10 @@
 {
     "modes": ["Pin", "Type", "Abbreviation"],
+    "default": "Pin",
     "modePin": {
         "difficulties": ["Practice", "Easy", "Hard"],
         "field": "name",
+        "default": "easy",
         "practice": "Practice description",
         "easy": "Easy description",
         "hard": "Hard description"
@@ -10,12 +12,14 @@
     "modeType": {
         "difficulties": ["Easy", "Hard"],
         "field": "name",
+        "default": "easy",
         "easy": "Easy description",
         "hard": "Hard description"
     },
     "modeAbbreviation": {
         "difficulties": ["Normal"],
         "field": "abbr",
+        "default": "easy",
         "normal": "Normal description"
     }
 }
